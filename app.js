@@ -4,14 +4,14 @@ const cors = require("cors");
 const connectdb = require("./db/connect");
 const updateToken = require("./db/update");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const { ObjectId } = require("mongodb");
 const port = process.env.PORT || 8000;
+require("dotenv").config();
 
 app.use(
   cors({
-    origin: "https://endearing-taffy-8309ba.netlify.app/",
+    origin: process.env.BASE_URL,
     methods: ["GET", "POST", "PATCH", "DELETE"],
     credentials: true,
     allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept"],
@@ -43,7 +43,6 @@ app.post("/signin", async (req, res) => {
     );
 
     updateToken(token, dbdata._id);
-    console.log("hi");
 
     res.cookie("jwt", token, {
       expires: new Date(Date.now() + 120000),
