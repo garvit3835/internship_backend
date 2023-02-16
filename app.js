@@ -11,7 +11,7 @@ const port = process.env.PORT || 8000;
 
 app.use(
   cors({
-    origin: "https://timely-parfait-47caab.netlify.app/",
+    origin: "https://endearing-taffy-8309ba.netlify.app/",
     methods: ["GET", "POST", "PATCH", "DELETE"],
     credentials: true,
     allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept"],
