@@ -9,7 +9,15 @@ const cookieParser = require("cookie-parser");
 const { ObjectId } = require("mongodb");
 const port = process.env.PORT || 8000;
 
-app.use(cors({ credentials: true, origin: process.env.BASE_URL }));
+app.use(
+  cors({
+    origin: "https://timely-parfait-47caab.netlify.app/",
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    credentials: true,
+    allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept"],
+  })
+);
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -26,15 +34,22 @@ app.post("/signin", async (req, res) => {
     password: user.password,
   });
   if (dbdata) {
-    const token = jwt.sign({ username: dbdata.username }, "thisisarandomsecretkey", {
-      expiresIn: "2 minutes",
-    });
-    // console.log(token);
+    const token = jwt.sign(
+      { username: dbdata.username },
+      "thisisarandomsecretkey",
+      {
+        expiresIn: "2 minutes",
+      }
+    );
+
     updateToken(token, dbdata._id);
+    console.log("hi");
 
     res.cookie("jwt", token, {
       expires: new Date(Date.now() + 120000),
       httpOnly: true,
+      secure: true,
+      sameSite: "none",
     });
 
     res.json({ status: true });
@@ -52,7 +67,7 @@ app.get("/authcheck", async (req, res, next) => {
     const verified = jwt.verify(token, "thisisarandomsecretkey");
     const collection = await connectdb();
     // console.log(verified.username);
-    const user = await collection.findOne({ username: verified.username});
+    const user = await collection.findOne({ username: verified.username });
     if (!user) {
       res.json({ status: false });
     } else {
