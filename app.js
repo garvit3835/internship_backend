@@ -11,7 +11,7 @@ require("dotenv").config();
 
 app.use(
   cors({
-    origin: '*',
+    origin: ['https://endearing-taffy-8309ba.netlify.app', 'http://127.0.0.1:3000'],
     methods: ["GET", "POST", "PATCH", "DELETE"],
     credentials: true,
     allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept"],
