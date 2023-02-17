@@ -5,13 +5,16 @@ const connectdb = require("./db/connect");
 const updateToken = require("./db/update");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const { ObjectId } = require("mongodb");
+var bcrypt = require("bcryptjs");
 const port = process.env.PORT || 8000;
 require("dotenv").config();
 
 app.use(
   cors({
-    origin: ['https://endearing-taffy-8309ba.netlify.app', 'http://127.0.0.1:3000'],
+    origin: [
+      "https://endearing-taffy-8309ba.netlify.app",
+      "http://127.0.0.1:3000",
+    ],
     methods: ["GET", "POST", "PATCH", "DELETE"],
     credentials: true,
     allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept"],
@@ -31,27 +34,31 @@ app.post("/signin", async (req, res) => {
   let collection = await connectdb();
   let dbdata = await collection.findOne({
     username: user.username,
-    password: user.password,
   });
   if (dbdata) {
-    const token = jwt.sign(
-      { username: dbdata.username },
-      "thisisarandomsecretkey",
-      {
-        expiresIn: "2 minutes",
-      }
-    );
+    let match = await bcrypt.compare(user.password, dbdata.password);
+    if (match) {
+      const token = jwt.sign(
+        { username: dbdata.username },
+        "thisisarandomsecretkey",
+        {
+          expiresIn: "2 minutes",
+        }
+      );
 
-    updateToken(token, dbdata._id);
+      updateToken(token, dbdata._id);
 
-    res.cookie("jwt", token, {
-      expires: new Date(Date.now() + 120000),
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
+      res.cookie("jwt", token, {
+        expires: new Date(Date.now() + 120000),
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
 
-    res.json({ status: true });
+      res.json({ status: true });
+    } else {
+      res.status(400).json({ status: false });
+    }
   } else {
     res.status(400).json({ status: false });
   }
@@ -65,7 +72,6 @@ app.get("/authcheck", async (req, res, next) => {
   try {
     const verified = jwt.verify(token, "thisisarandomsecretkey");
     const collection = await connectdb();
-    // console.log(verified.username);
     const user = await collection.findOne({ username: verified.username });
     if (!user) {
       res.json({ status: false });
